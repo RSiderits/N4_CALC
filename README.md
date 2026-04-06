@@ -3,15 +3,18 @@ NECTIN-4 FISH Calculator Help
 
 Purpose
 -------
-This calculator is adapted from the HER2 FISH calculator and mapped for NECTIN-4 (PVRL4) 
-with CEP1 as the reference probe. It helps the user enter per-nucleus counts, 
-calculate averages and ratios, review chromosome 1 gain, assess heterogeneity, 
-screen for bimodality, and assign a NECTIN-4 group result using the supplied study-based thresholds.
+This calculator is adapted from the HER2 FISH calculator and 
+mapped for NECTIN-4 (PVRL4) with CEP1 as the reference probe. 
+It helps the user enter per-nucleus counts,calculate averages 
+and ratios, review chromosome 1 gain, assess heterogeneity, 
+screen for bimodality, and assign a NECTIN-4 group result 
+using the supplied study-based thresholds.
 
 General use
 -----------
 1. Enter Sample Name and Sample ID if desired.
-2. For each tumor nucleus, enter the CEP1 centromere count and the NECTIN-4 signal count.
+2. For each tumor nucleus, enter the CEP1 centromere count and the 
+   NECTIN-4 signal count.
 3. Click Add after each pair. Press Enter in the centromere field to move to the 
    NECTIN-4 field, and press Enter in the NECTIN-4 field to add the pair.
 4. Continue until the intended nuclei count has been entered.
@@ -24,7 +27,8 @@ Important scoring prerequisites
 - Score invasive neoplastic cells only.
 - Exclude in situ elements, benign cells, necrotic areas, and overlapping nuclei.
 - Score only nuclei that show at least one NECTIN-4 signal and at least one CEP1 signal.
-- A specimen is considered evaluable only if the specimen contains at least 100 viable invasive tumor cells.
+- A specimen is considered evaluable only if the specimen contains at 
+  least 100 viable invasive tumor cells.
 - The calculator performs the arithmetic on the cells entered; specimen adequacy still 
   requires pathologist review.
 
@@ -75,10 +79,12 @@ Ratio:
 NECTIN-4 divided by CEP1, using the averages derived from the entered nuclei.
 
 SD (NECTIN-4):
-Standard deviation of the NECTIN-4 counts. This reflects the spread of NECTIN-4 values.
+Standard deviation of the NECTIN-4 counts. This reflects the spread 
+of NECTIN-4 values.
 
 CV:
-Coefficient of variation for NECTIN-4, calculated as SD divided by the average NECTIN-4 count.
+Coefficient of variation for NECTIN-4, calculated as SD divided by the 
+average NECTIN-4 count.
 
 Group:
 The NECTIN-4 group assignment based on the supplied mapping.
@@ -124,9 +130,11 @@ Interpretation: Count 20-50 additional cells.
 This group is intended to flag borderline cases for additional enumeration.
 
 Group 5:
-Ratio < 2.0 and average NECTIN-4 copy number < 6.0, without Group 4 borderline features.
+Ratio < 2.0 and average NECTIN-4 copy number < 6.0, without Group 4 
+borderline features. 
 Interpretation: Negative.
-This usually corresponds to a disomic pattern or absence of focal amplification.
+This usually corresponds to a disomic pattern or absence of 
+focal amplification.
 
 How the calculator assigns groups
 ---------------------------------
@@ -150,7 +158,8 @@ counts to describe heterogeneity:
 - Moderate heterogeneity: CV > 0.40 to 0.60
 - High heterogeneity: CV > 0.60
 
-These categories describe numeric spread only. They do not by themselves define amplification status.
+These categories describe numeric spread only. They do not by themselves 
+define amplification status.
 
 Chromosome gain categories
 --------------------------
@@ -172,11 +181,14 @@ The Gain Note field changes automatically to explain the likely meaning of the C
 - No chromosome gain: CEP1 not increased enough to support chromosome 1 gain
 - Low-level gain: modest CEP1 increase; not equivalent to focal NECTIN-4 amplification
 - Moderate gain: interpret NECTIN-4 counts in the context of the ratio
-- Marked gain: high CEP1 count may explain increased NECTIN-4 counts without focal amplification
+- Marked gain: high CEP1 count may explain increased NECTIN-4 counts without 
+  focal amplification
 
 Bimodality
 ----------
-The calculator includes a simple distribution-based screen for bimodality using the NECTIN-4 counts:
+The calculator includes a simple distribution-based screen for bimodality 
+using the NECTIN-4 counts:
+
 - It builds a histogram of NECTIN-4 signals per nucleus.
 - It looks for at least two meaningful peaks.
 - It looks for separation between the peaks and a valley between them.
@@ -189,8 +201,8 @@ must interpret that pattern in morphologic and technical context.
 
 Histogram
 ---------
-The histogram plots the number of nuclei at each NECTIN-4 signal count. If bimodality is 
-detected, red dashed vertical markers identify the detected peaks.
+The histogram plots the number of nuclei at each NECTIN-4 signal count. 
+If bimodality is detected, red dashed vertical markers identify the detected peaks.
 
 Practical notes
 ---------------
@@ -198,4 +210,5 @@ Practical notes
   substitutes the supplied NECTIN-4 thresholds and terminology.
 - Group names are analog mappings for NECTIN-4 and are not formal ASCO/CAP 
   Nectin-4 guideline groups.
-- Borderline cases should be reviewed carefully and extended by counting additional cells as directed.
+- Borderline cases should be reviewed carefully and extended by counting 
+  additional cells as directed.
