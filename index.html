@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NECTIN-4 FISH Group Calculator</title>
+  <style>
+    :root {
+      --page-blue: #d9ecff;
+      --light-green: #ccffcc;
+      --light-blue: #e6f2ff;
+      --border: #888;
+      --text: #222;
+      --white: #fff;
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Arial, Helvetica, sans-serif; background: var(--page-blue); color: var(--text); }
+    .page { max-width: 1180px; margin: 0 auto; padding: 14px; }
+    h1 { text-align: center; margin: 10px 0 16px; font-size: 28px; }
+
+    .panel { border: 1px solid var(--border); border-radius: 6px; background: transparent; margin-bottom: 12px; overflow: hidden; }
+    .panel-title { font-weight: bold; padding: 8px 10px; border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.18); }
+    .panel-body { padding: 10px; }
+
+    .grid-4 { display: grid; grid-template-columns: 130px 1fr 100px 1fr; gap: 10px 8px; align-items: center; }
+    .grid-entry { display: grid; grid-template-columns: 120px 120px 140px 120px auto auto auto; gap: 8px; align-items: center; }
+
+    label { font-weight: bold; }
+
+    input[type="text"], input[type="number"] {
+      width: 100%;
+      padding: 7px 8px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: var(--white);
+      font-size: 14px;
+    }
+
+    button {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: #f3f3f3;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    button:hover { filter: brightness(0.97); }
+
+    .table-wrap {
+      border: 1px solid var(--border);
+      background: var(--white);
+      max-height: 295px;
+      overflow-y: auto;
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      background: var(--light-green);
+      border-bottom: 1px solid var(--border);
+      padding: 8px;
+      text-align: center;
+      z-index: 1;
+    }
+
+    tbody td {
+      border-top: 1px solid #cfd8dc;
+      padding: 7px 8px;
+      text-align: center;
+      background: var(--light-blue);
+    }
+
+    tbody tr.selected td {
+      outline: 2px solid #5b8def;
+      outline-offset: -2px;
+    }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: 130px 115px 130px 115px 130px 140px;
+      gap: 10px 5px;
+      align-items: center;
+    }
+
+    .results-grid label {
+      text-align: right;
+      justify-self: end;
+    }
+
+    .result-box {
+      min-height: 34px;
+      padding: 7px 8px;
+      border: 1px solid var(--border);
+      background: var(--white);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+    }
+
+    .result-box.green { background: var(--light-green); }
+    .result-box.yellow { background: #ffffcc; }
+
+    .actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 8px; flex-wrap: wrap; }
+    .button-group { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .defs-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .definitions { white-space: pre-line; line-height: 1.3; font-size: 12px; }
+
+    .hint { font-size: 12px; opacity: 0.8; margin-top: 4px; }
+
+    .chart-wrap { border: 1px solid var(--border); background: var(--white); border-radius: 4px; padding: 10px; }
+    .chart-title { font-weight: bold; margin-bottom: 8px; }
+    #histogram { width: 100%; height: 280px; display: block; background: #fff; border: 1px solid #cfd8dc; }
+    .chart-note { font-size: 12px; margin-top: 6px; opacity: 0.8; }
+
+    @media (max-width: 1080px) {
+      .grid-4, .grid-entry, .results-grid, .defs-row { grid-template-columns: 1fr; }
+      .actions { justify-content: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>NECTIN-4 FISH Group Calculator</h1>
+
+    <section class="panel">
+      <div class="panel-title">Sample Information</div>
+      <div class="panel-body grid-4">
+        <label for="sampleName">Sample Name:</label>
+        <input id="sampleName" type="text" />
+        <label for="sampleId">Sample ID:</label>
+        <input id="sampleId" type="text" />
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-title">Enter Counts</div>
+      <div class="panel-body">
+        <div class="grid-entry">
+          <label for="centromereInput">CEP1:</label>
+          <input id="centromereInput" type="number" min="0" step="any" />
+          <label for="signalInput">NECTIN-4 Signal:</label>
+          <input id="signalInput" type="number" min="0" step="any" />
+          <button id="addBtn" type="button">Add</button>
+          <button id="deleteBtn" type="button">Delete</button>
+          <button id="clearBtn" type="button">Clear</button>
+        </div>
+        <div class="hint">Press Enter in the CEP1 field to move to NECTIN-4 Signal. Press Enter in NECTIN-4 Signal to add the pair.</div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-title">Entered Nuclei Pairs</div>
+      <div class="panel-body">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 90px;">#</th>
+                <th style="width: 180px;">CEP1</th>
+                <th style="width: 180px;">NECTIN-4</th>
+              </tr>
+            </thead>
+            <tbody id="pairsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-title">Results</div>
+      <div class="panel-body">
+        <div class="results-grid">
+          <label>Cells:</label>
+          <div class="result-box" id="cellsBox">0</div>
+
+          <label>Avg NECTIN-4:</label>
+          <div class="result-box yellow" id="avgSignalBox">0.00</div>
+
+          <label>Avg CEP1:</label>
+          <div class="result-box" id="avgCentBox">0.00</div>
+
+          <label>Ratio:</label>
+          <div class="result-box yellow" id="ratioBox">0.00</div>
+
+          <label>SD (NECTIN-4):</label>
+          <div class="result-box" id="sdBox">0.00</div>
+
+          <label>CV:</label>
+          <div class="result-box" id="cvBox">0.00</div>
+
+          <label>Group:</label>
+          <div class="result-box green" id="groupBox">-</div>
+
+          <label>Interpretation:</label>
+          <div class="result-box green" id="interpretationBox">-</div>
+
+          <label>Heterogeneity:</label>
+          <div class="result-box green" id="heterogeneityBox" style="min-width: 30ch;">-</div>
+
+          <label>Bimodality:</label>
+          <div class="result-box green" id="bimodalityBox">-</div>
+
+          <label>Chromosome Gain:</label>
+          <div class="result-box green" id="polysomyCategoryBox">-</div>
+
+          <label>Gain Note:</label>
+          <div class="result-box green" id="polysomyNoteBox" style="min-width: 30ch;">-</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-title">Signal Distribution Histogram</div>
+      <div class="panel-body">
+        <div class="chart-wrap">
+          <div class="chart-title">NECTIN-4 signal counts by nucleus</div>
+          <canvas id="histogram" width="1100" height="280"></canvas>
+          <div class="chart-note">Bars show the number of nuclei at each NECTIN-4 signal count. Red dashed markers indicate detected peaks when bimodality is flagged.</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="actions">
+      <div class="button-group">
+        <button id="copyBtn" type="button">Copy Report</button>
+        <button id="helpBtn" type="button">Help</button>
+        <button id="exitBtn" type="button">Exit Program</button>
+      </div>
+    </div>
+
+    <div class="defs-row">
+      <section class="panel">
+        <div class="panel-title">NECTIN-4 Group Definitions</div>
+        <div class="panel-body definitions">Group 1: NECTIN-4/CEP1 ratio ≥ 2.0 AND average NECTIN-4 copy number ≥ 6.0 → Positive
+Group 2: NECTIN-4/CEP1 ratio ≥ 2.0 AND average NECTIN-4 copy number < 6.0 → Positive
+Group 3: NECTIN-4/CEP1 ratio < 2.0 AND average NECTIN-4 copy number ≥ 6.0 → Positive
+Group 4: Borderline range: ratio 1.8–2.2 or average NECTIN-4 copy number 5.4–6.6 → Count 20–50 additional cells
+Group 5: ratio < 2.0 AND average NECTIN-4 copy number < 6.0, without Group 4 borderline features → Negative</div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title">Heterogeneity Definitions</div>
+        <div class="panel-body definitions">Low heterogeneity: CV 0.25–0.40
+Moderate heterogeneity: CV > 0.40–0.60
+High heterogeneity: CV > 0.60
+Below low heterogeneity range: CV < 0.25</div>
+      </section>
+    </div>
+
+    <div class="defs-row">
+      <section class="panel">
+        <div class="panel-title">Chromosome Gain Definitions</div>
+        <div class="panel-body definitions">No chromosome gain: Average CEP1 < 2.25
+Low-level chromosome gain: Average CEP1 2.25 to < 3.0
+Moderate chromosome gain: Average CEP1 3.0 to < 4.0
+Marked chromosome gain: Average CEP1 ≥ 4.0
+
+Chromosome gain is not the same as focal amplification. A high NECTIN-4 count with proportionally increased CEP1 counts may reflect chromosome 1 gain rather than focal amplification.</div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title">Interpretive Note</div>
+        <div class="panel-body definitions">This calculator uses a HER2-analogous research framework for NECTIN-4.
+Score invasive neoplastic cells only.
+Exclude in situ elements, benign cells, necrotic areas, and overlapping nuclei.
+Only score nuclei showing at least one NECTIN-4 signal and at least one CEP1 signal.
+If the result falls into Group 4, count 20–50 additional tumor cells before final classification.
+Polysomy / chromosome gain should be distinguished from focal amplification.</div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const embeddedHelpText = "NECTIN-4 FISH Calculator Help\n============================\n\nPurpose\n-------\nThis calculator is adapted from the HER2 FISH calculator and mapped for NECTIN-4 (PVRL4) with CEP1 as the reference probe. It helps the user enter per-nucleus counts, calculate averages and ratios, review chromosome 1 gain, assess heterogeneity, screen for bimodality, and assign a NECTIN-4 group result using the supplied study-based thresholds.\n\nGeneral use\n-----------\n1. Enter Sample Name and Sample ID if desired.\n2. For each tumor nucleus, enter the CEP1 centromere count and the NECTIN-4 signal count.\n3. Click Add after each pair. Press Enter in the centromere field to move to the NECTIN-4 field, and press Enter in the NECTIN-4 field to add the pair.\n4. Continue until the intended nuclei count has been entered.\n5. Review the Results panel, histogram, and the definition boxes at the bottom.\n6. Use Copy Report to copy a text summary to the clipboard.\n7. Use Delete to remove selected rows or Clear to remove all rows.\n\nImportant scoring prerequisites\n-------------------------------\n- Score invasive neoplastic cells only.\n- Exclude in situ elements, benign cells, necrotic areas, and overlapping nuclei.\n- Score only nuclei that show at least one NECTIN-4 signal and at least one CEP1 signal.\n- A specimen is considered evaluable only if the specimen contains at least 100 viable invasive tumor cells.\n- The calculator performs the arithmetic on the cells entered; specimen adequacy still requires pathologist review.\n\nFields and controls\n-------------------\nSample Name:\nOptional text field for the case name.\n\nSample ID:\nOptional text field for the accession or identifier.\n\nCentromere:\nThe CEP1 count for a single nucleus.\n\nNECTIN-4 Signal:\nThe NECTIN-4 count for the same nucleus.\n\nAdd:\nAdds the entered nucleus pair to the table.\n\nDelete:\nDeletes the selected row or rows from the table.\n\nClear:\nDeletes all entered rows.\n\nEntered Nuclei Pairs table:\nShows all nuclei entered. Clicking a row selects it for deletion.\n\nCopy Report:\nCopies a plain-text summary of the case and results.\n\nExit Program:\nAttempts to close the browser tab. Some browsers block this.\n\nResults fields\n--------------\nCells:\nThe number of nuclei entered into the calculator.\n\nAvg NECTIN-4:\nAverage NECTIN-4 copy number per entered nucleus.\n\nAvg Centromere:\nAverage CEP1 copy number per entered nucleus.\n\nRatio:\nNECTIN-4 divided by CEP1, using the averages derived from the entered nuclei.\n\nSD (NECTIN-4):\nStandard deviation of the NECTIN-4 counts. This reflects the spread of NECTIN-4 values.\n\nCV:\nCoefficient of variation for NECTIN-4, calculated as SD divided by the average NECTIN-4 count.\n\nGroup:\nThe NECTIN-4 group assignment based on the supplied mapping.\n\nInterpretation:\nA short action or status statement attached to the group.\n\nHeterogeneity:\nA CV-based category describing how variable the NECTIN-4 counts are across nuclei.\n\nBimodality:\nA simple screening result indicating whether the NECTIN-4 signal distribution appears to contain two separate peaks.\n\nChromosome Gain:\nA CEP1-based category describing the degree of chromosome 1 gain.\n\nGain Note:\nA brief interpretive comment explaining what the chromosome gain category means.\n\nInterpretation categories\n-------------------------\nGroup 1:\nNECTIN-4/CEP1 ratio >= 2.0 and average NECTIN-4 copy number >= 6.0.\nInterpretation: Positive.\nThis represents amplification by both ratio and gene copy number.\n\nGroup 2:\nNECTIN-4/CEP1 ratio >= 2.0 and average NECTIN-4 copy number < 6.0.\nInterpretation: Positive.\nThis reflects an amplified ratio even though the average gene copy number remains below 6.0.\n\nGroup 3:\nNECTIN-4/CEP1 ratio < 2.0 and average NECTIN-4 copy number >= 6.0.\nInterpretation: Positive.\nThis reflects high-level copy number increase despite a ratio below 2.0.\n\nGroup 4:\nBorderline range. This is assigned if either of the following is present:\n- Ratio 1.8 to 2.2, or\n- Average NECTIN-4 copy number 5.4 to 6.6.\nInterpretation: Count 20-50 additional cells.\nThis group is intended to flag borderline cases for additional enumeration.\n\nGroup 5:\nRatio < 2.0 and average NECTIN-4 copy number < 6.0, without Group 4 borderline features.\nInterpretation: Negative.\nThis usually corresponds to a disomic pattern or absence of focal amplification.\n\nHow the calculator assigns groups\n---------------------------------\nThe calculator checks for Group 4 borderline conditions first. If the ratio is between 1.8 and 2.2 inclusive, or if the average NECTIN-4 copy number is between 5.4 and 6.6 inclusive, it reports Group 4 and recommends counting 20-50 additional cells.\nIf the case is not borderline, it then assigns:\n- Group 1 if ratio >= 2.0 and average NECTIN-4 >= 6.0\n- Group 2 if ratio >= 2.0 and average NECTIN-4 < 6.0\n- Group 3 if ratio < 2.0 and average NECTIN-4 >= 6.0\n- Group 5 otherwise\n\nHeterogeneity categories\n------------------------\nThe calculator uses coefficient of variation (CV) of NECTIN-4 counts to describe heterogeneity:\n- Below low heterogeneity range: CV < 0.25\n- Low heterogeneity: CV 0.25 to 0.40\n- Moderate heterogeneity: CV > 0.40 to 0.60\n- High heterogeneity: CV > 0.60\n\nThese categories describe numeric spread only. They do not by themselves define amplification status.\n\nChromosome gain categories\n--------------------------\nThese categories are based on average CEP1 count:\n- No chromosome gain: Avg CEP1 < 2.25\n- Low-level chromosome 1 gain: Avg CEP1 2.25 to < 3.0\n- Moderate chromosome 1 gain: Avg CEP1 3.0 to < 4.0\n- Marked chromosome 1 gain: Avg CEP1 >= 4.0\n\nChromosome gain versus amplification\n------------------------------------\nThe calculator separates chromosome 1 gain from focal NECTIN-4 amplification. When both NECTIN-4 and CEP1 increase together, the ratio may stay near 1.0 even though the absolute NECTIN-4 count rises. That pattern supports chromosome gain rather than focal amplification.\n\nGain note behavior\n------------------\nThe Gain Note field changes automatically to explain the likely meaning of the CEP1 category:\n- No chromosome gain: CEP1 not increased enough to support chromosome 1 gain\n- Low-level gain: modest CEP1 increase; not equivalent to focal NECTIN-4 amplification\n- Moderate gain: interpret NECTIN-4 counts in the context of the ratio\n- Marked gain: high CEP1 count may explain increased NECTIN-4 counts without focal amplification\n\nBimodality\n----------\nThe calculator includes a simple distribution-based screen for bimodality using the NECTIN-4 counts:\n- It builds a histogram of NECTIN-4 signals per nucleus.\n- It looks for at least two meaningful peaks.\n- It looks for separation between the peaks and a valley between them.\n- If those criteria are met, it reports Bimodal and shows the approximate peak values.\n\nThis is a screening feature only. It is not a formal clinical classification by itself. A bimodal pattern may suggest two cell populations, clonal divergence, mixed amplification states, or sampling heterogeneity, but the pathologist must interpret that pattern in morphologic and technical context.\n\nHistogram\n---------\nThe histogram plots the number of nuclei at each NECTIN-4 signal count. If bimodality is detected, red dashed vertical markers identify the detected peaks.\n\nPractical notes\n---------------\n- The calculator follows the arithmetic behavior of the original HER2 tool but substitutes the supplied NECTIN-4 thresholds and terminology.\n- Group names are analog mappings for NECTIN-4 and are not formal ASCO/CAP Nectin-4 guideline groups.\n- Borderline cases should be reviewed carefully and extended by counting additional cells as directed.\n";
+    const data = [];
+    let selectedIndices = new Set();
+
+    const sampleName = document.getElementById('sampleName');
+    const sampleId = document.getElementById('sampleId');
+    const centromereInput = document.getElementById('centromereInput');
+    const signalInput = document.getElementById('signalInput');
+    const pairsBody = document.getElementById('pairsBody');
+
+    const cellsBox = document.getElementById('cellsBox');
+    const avgSignalBox = document.getElementById('avgSignalBox');
+    const avgCentBox = document.getElementById('avgCentBox');
+    const ratioBox = document.getElementById('ratioBox');
+    const sdBox = document.getElementById('sdBox');
+    const cvBox = document.getElementById('cvBox');
+    const groupBox = document.getElementById('groupBox');
+    const interpretationBox = document.getElementById('interpretationBox');
+    const heterogeneityBox = document.getElementById('heterogeneityBox');
+    const bimodalityBox = document.getElementById('bimodalityBox');
+    const polysomyCategoryBox = document.getElementById('polysomyCategoryBox');
+    const polysomyNoteBox = document.getElementById('polysomyNoteBox');
+    const histogramCanvas = document.getElementById('histogram');
+
+    function formatNumber(value) {
+      return Number.isFinite(value) ? value.toFixed(2) : '0.00';
+    }
+
+    function classifyGroup(ratio, avgSignal) {
+      const isBorderline = (ratio >= 1.8 && ratio <= 2.2) || (avgSignal >= 5.4 && avgSignal <= 6.6);
+      if (isBorderline) return ['4', 'Count 20–50 additional cells'];
+      if (ratio >= 2.0 && avgSignal >= 6.0) return ['1', 'Positive'];
+      if (ratio >= 2.0 && avgSignal < 6.0) return ['2', 'Positive'];
+      if (ratio < 2.0 && avgSignal >= 6.0) return ['3', 'Positive'];
+      return ['5', 'Negative'];
+    }
+
+    function classifyHeterogeneity(cv) {
+      if (cv >= 0.25 && cv <= 0.40) return 'Low heterogeneity';
+      if (cv > 0.40 && cv <= 0.60) return 'Moderate heterogeneity';
+      if (cv > 0.60) return 'High heterogeneity';
+      return 'Below low heterogeneity range';
+    }
+
+    function classifyChromosomeGain(avgCentromere) {
+      if (avgCentromere >= 4.0) {
+        return ['Marked chromosome gain', 'Marked CEP1 increase; elevated NECTIN-4 counts may reflect chromosome 1 gain rather than focal amplification.'];
+      }
+      if (avgCentromere >= 3.0) {
+        return ['Moderate chromosome gain', 'Moderate CEP1 increase; interpret NECTIN-4 counts in the context of the ratio.'];
+      }
+      if (avgCentromere >= 2.25) {
+        return ['Low-level chromosome gain', 'Low-level CEP1 increase; this is not equivalent to focal amplification.'];
+      }
+      return ['No chromosome gain', 'CEP1 count is not increased enough to support chromosome 1 gain by this scoring scheme.'];
+    }
+
+    function calculateSD(values) {
+      if (!values.length) return 0;
+      const mean = values.reduce((a, b) => a + b, 0) / values.length;
+      const variance = values.reduce((sum, x) => sum + ((x - mean) ** 2), 0) / values.length;
+      return Math.sqrt(variance);
+    }
+
+    function buildHistogram(values) {
+      const counts = new Map();
+      values.forEach(v => {
+        const key = Number(v);
+        counts.set(key, (counts.get(key) || 0) + 1);
+      });
+      return [...counts.entries()].sort((a, b) => a[0] - b[0]).map(([signal, count]) => ({ signal, count }));
+    }
+
+    function detectBimodality(values) {
+      if (values.length < 6) return { label: 'Insufficient data', peaks: [] };
+      const hist = buildHistogram(values);
+      if (hist.length < 3) return { label: 'No clear bimodality', peaks: [] };
+
+      const peaks = [];
+      for (let i = 0; i < hist.length; i++) {
+        const prev = i > 0 ? hist[i - 1].count : -Infinity;
+        const curr = hist[i].count;
+        const next = i < hist.length - 1 ? hist[i + 1].count : -Infinity;
+        if (curr >= prev && curr >= next && curr > 0) peaks.push(hist[i]);
+      }
+
+      const meaningfulPeaks = peaks.filter(p => p.count >= 2).sort((a, b) => b.count - a.count);
+      if (meaningfulPeaks.length < 2) return { label: 'No clear bimodality', peaks: [] };
+
+      const [p1, p2] = meaningfulPeaks;
+      const low = Math.min(p1.signal, p2.signal);
+      const high = Math.max(p1.signal, p2.signal);
+      const valleyBins = hist.filter(h => h.signal > low && h.signal < high);
+      const valleyMin = valleyBins.length ? Math.min(...valleyBins.map(v => v.count)) : 0;
+      const separation = Math.abs(p1.signal - p2.signal);
+      const peakFloor = Math.min(p1.count, p2.count);
+      const valleyAdequate = valleyBins.length > 0 && valleyMin <= peakFloor * 0.5;
+
+      if (separation >= 2 && valleyAdequate) return { label: `Bimodal (${low} and ${high})`, peaks: [low, high] };
+      return { label: 'No clear bimodality', peaks: [low, high] };
+    }
+
+    function drawHistogram(values, peakSignals = []) {
+      const canvas = histogramCanvas;
+      const ctx = canvas.getContext('2d');
+      const width = canvas.width;
+      const height = canvas.height;
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, width, height);
+
+      const margin = { top: 20, right: 20, bottom: 50, left: 45 };
+      const plotW = width - margin.left - margin.right;
+      const plotH = height - margin.top - margin.bottom;
+
+      ctx.strokeStyle = '#444';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(margin.left, margin.top);
+      ctx.lineTo(margin.left, margin.top + plotH);
+      ctx.lineTo(margin.left + plotW, margin.top + plotH);
+      ctx.stroke();
+
+      if (!values.length) {
+        ctx.fillStyle = '#444';
+        ctx.font = '14px Arial';
+        ctx.fillText('No data entered', margin.left + 10, margin.top + 20);
+        return;
+      }
+
+      const hist = buildHistogram(values);
+      const maxCount = Math.max(...hist.map(h => h.count), 1);
+      const barSlot = plotW / hist.length;
+      const barWidth = Math.max(18, barSlot * 0.65);
+
+      ctx.font = '12px Arial';
+      hist.forEach((bin, i) => {
+        const x = margin.left + (i * barSlot) + ((barSlot - barWidth) / 2);
+        const h = (bin.count / maxCount) * (plotH - 10);
+        const y = margin.top + plotH - h;
+
+        ctx.fillStyle = '#e6f2ff';
+        ctx.fillRect(x, y, barWidth, h);
+        ctx.strokeStyle = '#666';
+        ctx.strokeRect(x, y, barWidth, h);
+
+        ctx.fillStyle = '#222';
+        ctx.textAlign = 'center';
+        ctx.fillText(String(bin.signal), x + (barWidth / 2), margin.top + plotH + 16);
+        ctx.fillText(String(bin.count), x + (barWidth / 2), y - 6);
+
+        if (peakSignals.includes(bin.signal)) {
+          ctx.save();
+          ctx.strokeStyle = '#cc3333';
+          ctx.setLineDash([6, 4]);
+          ctx.beginPath();
+          ctx.moveTo(x + (barWidth / 2), margin.top);
+          ctx.lineTo(x + (barWidth / 2), margin.top + plotH);
+          ctx.stroke();
+          ctx.restore();
+        }
+      });
+
+      ctx.save();
+      ctx.fillStyle = '#222';
+      ctx.textAlign = 'center';
+      ctx.fillText('NECTIN-4 signals', margin.left + (plotW / 2), height - 12);
+      ctx.translate(14, margin.top + (plotH / 2));
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText('Nuclei count', 0, 0);
+      ctx.restore();
+    }
+
+    function renderTable() {
+      pairsBody.innerHTML = '';
+      [...data].map((pair, idx) => ({ actualIndex: idx, cellNumber: idx + 1, ...pair })).reverse().forEach((row) => {
+        const tr = document.createElement('tr');
+        tr.dataset.index = String(row.actualIndex);
+        if (selectedIndices.has(row.actualIndex)) tr.classList.add('selected');
+
+        tr.innerHTML = `<td>${row.cellNumber}</td><td>${row.centromere}</td><td>${row.signal}</td>`;
+
+        tr.addEventListener('click', (event) => {
+          const index = Number(tr.dataset.index);
+          if (!event.ctrlKey && !event.metaKey) {
+            if (selectedIndices.size === 1 && selectedIndices.has(index)) selectedIndices.clear();
+            else {
+              selectedIndices.clear();
+              selectedIndices.add(index);
+            }
+          } else {
+            if (selectedIndices.has(index)) selectedIndices.delete(index);
+            else selectedIndices.add(index);
+          }
+          renderTable();
+        });
+
+        pairsBody.appendChild(tr);
+      });
+    }
+
+    function updateResults() {
+      if (!data.length) {
+        cellsBox.textContent = '0';
+        avgSignalBox.textContent = '0.00';
+        avgCentBox.textContent = '0.00';
+        ratioBox.textContent = '0.00';
+        sdBox.textContent = '0.00';
+        cvBox.textContent = '0.00';
+        groupBox.textContent = '-';
+        interpretationBox.textContent = '-';
+        heterogeneityBox.textContent = '-';
+        bimodalityBox.textContent = '-';
+        polysomyCategoryBox.textContent = '-';
+        polysomyNoteBox.textContent = '-';
+        drawHistogram([], []);
+        return;
+      }
+
+      const centromeres = data.map(x => x.centromere);
+      const signals = data.map(x => x.signal);
+      const totalC = centromeres.reduce((a, b) => a + b, 0);
+      const totalS = signals.reduce((a, b) => a + b, 0);
+      const avgC = totalC / data.length;
+      const avgS = totalS / data.length;
+      const ratio = totalC ? totalS / totalC : 0;
+      const sd = calculateSD(signals);
+      const cv = avgS ? sd / avgS : 0;
+
+      const [group, interpretation] = classifyGroup(ratio, avgS);
+      const heterogeneity = classifyHeterogeneity(cv);
+      const bimodality = detectBimodality(signals);
+      const [chromosomeGain, gainNote] = classifyChromosomeGain(avgC);
+
+      cellsBox.textContent = String(data.length);
+      avgSignalBox.textContent = formatNumber(avgS);
+      avgCentBox.textContent = formatNumber(avgC);
+      ratioBox.textContent = formatNumber(ratio);
+      sdBox.textContent = formatNumber(sd);
+      cvBox.textContent = formatNumber(cv);
+      groupBox.textContent = group;
+      interpretationBox.textContent = interpretation;
+      heterogeneityBox.textContent = heterogeneity;
+      bimodalityBox.textContent = bimodality.label;
+      polysomyCategoryBox.textContent = chromosomeGain;
+      polysomyNoteBox.textContent = gainNote;
+      drawHistogram(signals, bimodality.peaks || []);
+    }
+
+    function refresh() {
+      renderTable();
+      updateResults();
+    }
+
+    function addPair() {
+      const c = parseFloat(centromereInput.value);
+      const s = parseFloat(signalInput.value);
+      if (Number.isNaN(c) || Number.isNaN(s)) {
+        alert('Enter numeric values.');
+        return;
+      }
+      if (c < 0 || s < 0) {
+        alert('Values cannot be negative.');
+        return;
+      }
+
+      data.push({ centromere: c, signal: s });
+      selectedIndices.clear();
+      refresh();
+      centromereInput.value = '';
+      signalInput.value = '';
+      centromereInput.focus();
+    }
+
+    function deleteSelected() {
+      if (!selectedIndices.size) return;
+      [...selectedIndices].sort((a, b) => b - a).forEach(index => data.splice(index, 1));
+      selectedIndices.clear();
+      refresh();
+    }
+
+    function clearAll() {
+      data.length = 0;
+      selectedIndices.clear();
+      refresh();
+    }
+
+    function buildReport() {
+      if (!data.length) return '';
+      const centromeres = data.map(x => x.centromere);
+      const signals = data.map(x => x.signal);
+      const totalC = centromeres.reduce((a, b) => a + b, 0);
+      const totalS = signals.reduce((a, b) => a + b, 0);
+      const avgC = totalC / data.length;
+      const avgS = totalS / data.length;
+      const ratio = totalC ? totalS / totalC : 0;
+      const sd = calculateSD(signals);
+      const cv = avgS ? sd / avgS : 0;
+      const [group, interpretation] = classifyGroup(ratio, avgS);
+      const heterogeneity = classifyHeterogeneity(cv);
+      const bimodality = detectBimodality(signals);
+      const [chromosomeGain, gainNote] = classifyChromosomeGain(avgC);
+
+      return [
+        'NECTIN-4 FISH Group Calculator Report',
+        '-------------------------------------',
+        `Sample Name: ${sampleName.value.trim()}`,
+        `Sample ID: ${sampleId.value.trim()}`,
+        `Cells Counted: ${data.length}`,
+        `Average CEP1 per Nucleus: ${formatNumber(avgC)}`,
+        `Average NECTIN-4 Signal per Nucleus: ${formatNumber(avgS)}`,
+        `NECTIN-4 / CEP1 Ratio: ${formatNumber(ratio)}`,
+        `SD (NECTIN-4): ${formatNumber(sd)}`,
+        `CV: ${formatNumber(cv)}`,
+        `Group: ${group}`,
+        `Interpretation: ${interpretation}`,
+        `Heterogeneity: ${heterogeneity}`,
+        `Bimodality: ${bimodality.label}`,
+        `Chromosome Gain: ${chromosomeGain}`,
+        `Gain Note: ${gainNote}`
+      ].join('\n');
+    }
+
+    async function copyReport() {
+      const report = buildReport();
+      if (!report) {
+        alert('No data entered.');
+        return;
+      }
+
+      const popupMessage = 'Report copied:\n\n' + report;
+      try {
+        await navigator.clipboard.writeText(report);
+        
+      const popupWindow = window.open('', '_blank', 'width=700,height=800,scrollbars=yes,resizable=yes');
+      if (popupWindow) {
+        popupWindow.document.write(`<pre style="font-family:monospace; font-size:11px; padding:15px; white-space:pre-wrap; word-wrap:break-word;">${report}</pre>`);
+        popupWindow.document.close();
+      } else {
+        alert(popupMessage);
+      }
+
+      } catch (err) {
+        const temp = document.createElement('textarea');
+        temp.value = report;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand('copy');
+        document.body.removeChild(temp);
+        
+      const popupWindow = window.open('', '_blank', 'width=700,height=800,scrollbars=yes,resizable=yes');
+      if (popupWindow) {
+        popupWindow.document.write(`<pre style="font-family:monospace; font-size:11px; padding:15px; white-space:pre-wrap; word-wrap:break-word;">${report}</pre>`);
+        popupWindow.document.close();
+      } else {
+        alert(popupMessage);
+      }
+
+      }
+    }
+
+    function openHelp() {
+      const helpWindow = window.open('', '_blank', 'width=900,height=700,scrollbars=yes,resizable=yes');
+      if (!helpWindow) {
+        alert('Unable to open Help window. Please allow pop-ups.');
+        return;
+      }
+
+      const escaped = embeddedHelpText
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+      helpWindow.document.open();
+      helpWindow.document.write(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>NECTIN-4 FISH Calculator Help</title>
+  <style>
+    body { font-family: Arial, Helvetica, sans-serif; margin: 20px; line-height: 1.4; background: #ffffff; color: #222; }
+    h1 { font-size: 22px; margin-top: 0; }
+    pre { white-space: pre-wrap; word-wrap: break-word; font-family: Consolas, "Courier New", monospace; font-size: 11px; border: 1px solid #aaa; padding: 14px; background: #f8f8f8; }
+  </style>
+</head>
+<body>
+  <h1>NECTIN-4 FISH Calculator Help</h1>
+  <pre>${escaped}</pre>
+</body>
+</html>`);
+      helpWindow.document.close();
+    }
+
+    function exitProgram() {
+      window.close();
+      alert('Browsers often prevent scripts from closing tabs they did not open. You can close this tab manually.');
+    }
+
+    function runSelfTests() {
+      console.assert(JSON.stringify(classifyGroup(2.1, 6.2)) === JSON.stringify(['4', 'Count 20–50 additional cells']), 'Borderline Group 4 test failed');
+      console.assert(JSON.stringify(classifyGroup(2.3, 6.8)) === JSON.stringify(['1', 'Positive']), 'Group 1 test failed');
+      console.assert(JSON.stringify(classifyGroup(2.4, 5.0)) === JSON.stringify(['2', 'Positive']), 'Group 2 test failed');
+      console.assert(JSON.stringify(classifyGroup(1.6, 6.8)) === JSON.stringify(['3', 'Positive']), 'Group 3 test failed');
+      console.assert(JSON.stringify(classifyGroup(1.6, 4.8)) === JSON.stringify(['5', 'Negative']), 'Group 5 test failed');
+    }
+
+    document.getElementById('addBtn').addEventListener('click', addPair);
+    document.getElementById('deleteBtn').addEventListener('click', deleteSelected);
+    document.getElementById('clearBtn').addEventListener('click', clearAll);
+    document.getElementById('copyBtn').addEventListener('click', copyReport);
+    document.getElementById('helpBtn').addEventListener('click', openHelp);
+    document.getElementById('exitBtn').addEventListener('click', exitProgram);
+
+    centromereInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        signalInput.focus();
+      }
+    });
+
+    signalInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        addPair();
+      }
+    });
+
+    runSelfTests();
+    refresh();
+  </script>
+</body>
+</html>
