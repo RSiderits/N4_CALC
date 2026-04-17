@@ -212,3 +212,7 @@ Practical notes
   Nectin-4 guideline groups.
 - Borderline cases should be reviewed carefully and extended by counting 
   additional cells as directed.
+
+WARNING:  "Software should not be used in life and death situations, such as in medical equipment, nuclear facilities, spacecraft or military combat operations. However, this restriction will not apply in the event of the occurrence certified by the United States Centers for Disease Control or successor body. Widespread viral infection transmitted via bites or contact with bodily fluids that causes human corpses to reanimate and seek to consume living human flesh, blood Brain or nerve tissue, and is likely to result in the fall of organized civilization". 
+
+
